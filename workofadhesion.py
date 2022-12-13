@@ -79,14 +79,14 @@ class VASPCal(OP):
     def get_input_sign(cls):
         return OPIOSign({
             'path_POSCAR': Artifact(Path),
-            'str_outdir': str,
+            'str_vaspout': str,
             'ase_vasp': Vasp,
         })
 
     @classmethod
     def get_output_sign(cls):
         return OPIOSign({
-            "path_out": Artifact(Path),
+            "path_vaspout": Artifact(Path),
         })
 
     @OP.exec_sign_check
@@ -99,13 +99,13 @@ class VASPCal(OP):
 
         ase_atoms.calc = op_in['ase_vasp']
         ase_atoms.calc.set(
-            directory = op_in['str_outdir'],
+            directory = op_in['str_vaspout'],
         )
 
         float_energy = ase_atoms.get_potential_energy()
        
         return OPIO({
-            "path_out": Path(op_in['str_outdir']),
+            "path_vaspout": Path(op_in['str_vaspout']),
         })
 
 class Workofadhesion(OP):
@@ -201,7 +201,7 @@ def main() -> Workflow:
             "path_POSCAR": upload_artifact(['Li.001.x3y5z4_vac12.POSCAR'])
         },
         parameters = {
-            'str_outdir': 'Li.001.x3y5z4_vac12',
+            'str_vaspout': 'Li.001.x3y5z4_vac12',
             'ase_vasp': ase_vasp
         },
         executor=executor_torque(
@@ -226,7 +226,7 @@ def main() -> Workflow:
             "path_POSCAR": upload_artifact(['Li2CO3.001.x2y2z2_vac12.POSCAR'])
         },
         parameters = {
-            'str_outdir': 'Li2CO3.001.x2y2z2_vac12',
+            'str_vaspout': 'Li2CO3.001.x2y2z2_vac12',
             'ase_vasp': ase_vasp_gaussian
         },
         executor=executor_torque(
@@ -245,7 +245,7 @@ def main() -> Workflow:
             "path_POSCAR": upload_artifact(['Li.001.x5y3z4_Li2CO3.001.x2y2z2_vac12.POSCAR'])
         },
         parameters = {
-            'str_outdir': 'Li.001.x5y3z4_Li2CO3.001.x2y2z2_vac12',
+            'str_vaspout': 'Li.001.x5y3z4_Li2CO3.001.x2y2z2_vac12',
             'ase_vasp': ase_vasp_gaussian
         },
         executor=executor_torque(
@@ -261,9 +261,9 @@ def main() -> Workflow:
             image="my-image"
         ),
         artifacts={
-            "path_vaspout_a": step_vasp_a.outputs.artifacts['path_out'],
-            "path_vaspout_b": step_vasp_b.outputs.artifacts['path_out'],
-            "path_vaspout_a_b": step_vasp_a_b.outputs.artifacts['path_out'],
+            "path_vaspout_a": step_vasp_a.outputs.artifacts['path_vaspout'],
+            "path_vaspout_b": step_vasp_b.outputs.artifacts['path_vaspout'],
+            "path_vaspout_a_b": step_vasp_a_b.outputs.artifacts['path_vaspout'],
         },
         parameters = {
             'str_json_save': 'workofadhesion.json',
@@ -283,7 +283,7 @@ def main() -> Workflow:
     for str_step in list_step:
         step = wf.query_step(name=str_step)[0]
         assert(step.phase == "Succeeded")
-        download_artifact(step.outputs.artifacts["path_out"])
+        download_artifact(step.outputs.artifacts["path_vaspout"])
 
     step = wf.query_step(name='Step-Workofadhesion')[0]
     assert(step.phase == "Succeeded")
